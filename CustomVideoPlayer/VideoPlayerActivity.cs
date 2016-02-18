@@ -15,7 +15,7 @@ namespace CustomVideoPlayer
     )]
     public class AndroidVideoPlayerActivity : Activity
     {
-        private RelativeLayout rootView;
+        private FrameLayout rootView;
         private ImageView playIcon;
         private ProgressBar loadingIndicator;
         private ImmersiveVideoView videoView;
@@ -47,7 +47,7 @@ namespace CustomVideoPlayer
 
         private void FindViews()
         {
-            rootView = FindViewById<RelativeLayout>(Resource.Id.rootView);
+            rootView = FindViewById<FrameLayout>(Resource.Id.rootView);
             videoView = FindViewById<ImmersiveVideoView>(Resource.Id.videoView);
             playIcon = FindViewById<ImageView>(Resource.Id.playIcon);
             loadingIndicator = FindViewById<ProgressBar>(Resource.Id.loadingIndicator);
