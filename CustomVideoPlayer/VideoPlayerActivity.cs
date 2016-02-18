@@ -17,10 +17,10 @@ namespace CustomVideoPlayer
     {
         private FrameLayout rootView;
         private ImageView playIcon;
-        private ProgressBar loadingIndicator;
-        private ImmersiveVideoView videoView;
 
         private FrameLayout systemWindow;
+        private ProgressBar loadingIndicator;
+        private ImmersiveVideoView videoView;
         private LinearLayout progressView;
         private TextView position;
         private ProgressBar progress;
@@ -49,10 +49,10 @@ namespace CustomVideoPlayer
         {
             rootView = FindViewById<FrameLayout>(Resource.Id.rootView);
             videoView = FindViewById<ImmersiveVideoView>(Resource.Id.videoView);
-            playIcon = FindViewById<ImageView>(Resource.Id.playIcon);
-            loadingIndicator = FindViewById<ProgressBar>(Resource.Id.loadingIndicator);
 
             systemWindow = FindViewById<FrameLayout>(Resource.Id.systemWindow);
+            loadingIndicator = FindViewById<ProgressBar>(Resource.Id.loadingIndicator);
+            playIcon = FindViewById<ImageView>(Resource.Id.playIcon);
             progressView = FindViewById<LinearLayout>(Resource.Id.progressView);
             position = FindViewById<TextView>(Resource.Id.position);
             progress = FindViewById<ProgressBar>(Resource.Id.progress);
@@ -90,6 +90,8 @@ namespace CustomVideoPlayer
 
         private void LoadMovie()
         {
+            loadingIndicator.Visibility = ViewStates.Visible;
+
             var movieUri = Android.Net.Uri.Parse("http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4");
             videoView.SetVideoURI(movieUri);
 

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/rootView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -20,40 +21,42 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:src="@drawable/videoplaylarge"
-            android:visibility="invisible" />
+            android:src="@android:drawable/ic_media_play"
+            android:background="@drawable/round_button"
+            android:visibility="invisible"
+            android:padding="10dp"
+            tools:visibility="visible" />
         <ProgressBar
             android:id="@+id/loadingIndicator"
-            style="?android:attr/progressBarStyleLarge"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:indeterminate="true"
-            android:layout_gravity="center" />
+            style="?android:attr/progressBarStyleLarge"
+            android:visibility="invisible" />
         <LinearLayout
             android:id="@+id/progressView"
             android:layout_width="match_parent"
             android:layout_height="30dp"
+            android:layout_gravity="bottom"
             android:orientation="horizontal"
-            android:background="#df545454"
-            android:layout_gravity="bottom">
+            android:background="#df545454">
             <TextView
                 android:id="@+id/position"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:layout_weight="0"
                 android:text="00:00"
                 android:gravity="center"
                 android:paddingRight="10dp"
                 android:paddingLeft="10dp" />
             <ProgressBar
                 android:id="@+id/progress"
-                style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
+                style="?android:attr/progressBarStyleHorizontal"
                 android:max="100"
-                android:progress="30"
-                android:layout_gravity="end" />
+                android:progress="30" />
             <TextView
                 android:id="@+id/duration"
                 android:layout_width="wrap_content"
