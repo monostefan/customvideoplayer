@@ -14,8 +14,7 @@
         android:id="@+id/controlls"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fitsSystemWindows="true"
-        android:animateLayoutChanges="true">
+        android:fitsSystemWindows="true">
         <ImageView
             android:id="@+id/playIcon"
             android:layout_width="wrap_content"

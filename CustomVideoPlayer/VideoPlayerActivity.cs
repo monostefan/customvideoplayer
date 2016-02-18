@@ -5,6 +5,7 @@ using Android.App;
 using Android.OS;
 using Android.Widget;
 using Android.Views;
+using Android.Animation;
 
 namespace CustomVideoPlayer
 {
@@ -40,6 +41,8 @@ namespace CustomVideoPlayer
             FindViews();
 
             BindEvents();
+
+            HideControlls();
         }
 
         private void FindViews()
@@ -115,12 +118,12 @@ namespace CustomVideoPlayer
             if (controlls.Visibility == ViewStates.Visible)
             {
                 HideSystemUI();
-                HideControlls();
+                HideControlls(animated: true);
             }
             else
             {
                 ShowSystemUI();
-                ShowControlls();
+                ShowControlls(animated: true);
             }
         }
 
@@ -153,7 +156,7 @@ namespace CustomVideoPlayer
         private void VideoView_Completion(object sender, EventArgs e)
         {
             videoView.SeekTo(0);
-            ShowControlls();
+            ShowControlls(animated: true);
             playIcon.Visibility = ViewStates.Visible;
         }
 
@@ -178,22 +181,43 @@ namespace CustomVideoPlayer
             );
         }
 
-        private void ShowControlls()
+        private void ShowControlls(bool animated = false)
         {
-            controlls.Visibility = ViewStates.Visible;
+            SetControllsVisibility(true, animated);
             ShowSystemUI();
         }
 
-        private void HideControlls()
+        private void HideControlls(bool animated = false)
         {
-            controlls.Visibility = ViewStates.Invisible;
+            SetControllsVisibility(false, animated);
             HideSystemUI();
+        }
+
+        private void SetControllsVisibility(bool isVisible, bool animated = false)
+        {
+            float targetAlpha = isVisible ? 1.0f : 0.0f;
+
+            if (animated)
+            {
+                controlls.Visibility = ViewStates.Visible;
+                var hide = ValueAnimator.OfFloat(controlls.Alpha, targetAlpha);
+                hide.SetDuration(300);
+                hide.Update += (sender, e) => controlls.Alpha = (float)e.Animation.AnimatedValue;
+                hide.AnimationEnd += (sender, e) =>
+                    controlls.Visibility = isVisible ? ViewStates.Visible : ViewStates.Invisible;
+                hide.Start();
+            }
+            else
+            {
+                controlls.Alpha = targetAlpha;
+                controlls.Visibility = ViewStates.Visible;
+            }
         }
 
         private void VideoView_Play (object sender, EventArgs e)
         {
             playIcon.SetImageResource(Android.Resource.Drawable.IcMediaPause);
-            HideControlls();
+            HideControlls(animated: true);
         }
 
         private void VideoView_Stop (object sender, EventArgs e)
