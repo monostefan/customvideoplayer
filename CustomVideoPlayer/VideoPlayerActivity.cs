@@ -23,12 +23,14 @@ namespace CustomVideoPlayer
         private ProgressBar loadingIndicator;
         private ImmersiveVideoView videoView;
         private TextView position;
-        private ProgressBar progress;
+        private SeekBar progress;
         private TextView duration;
 
         private Timer loadingTimeoutTimer;
         private Timer updateProgressTimer;
+
         private bool isLoaded = false;
+        private bool draggingProgress = false;
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
@@ -53,7 +55,7 @@ namespace CustomVideoPlayer
             controlls = FindViewById<FrameLayout>(Resource.Id.controlls);
             playIcon = FindViewById<ImageView>(Resource.Id.playIcon);
             position = FindViewById<TextView>(Resource.Id.position);
-            progress = FindViewById<ProgressBar>(Resource.Id.progress);
+            progress = FindViewById<SeekBar>(Resource.Id.progress);
             duration = FindViewById<TextView>(Resource.Id.duration);
 
             loadingIndicator = FindViewById<ProgressBar>(Resource.Id.loadingIndicator);
@@ -69,6 +71,10 @@ namespace CustomVideoPlayer
 
             rootView.Click += RootView_Click;
             playIcon.Click += PlayIcon_Click;
+
+            progress.StartTrackingTouch += Progress_StartTrackingTouch;
+            progress.StopTrackingTouch += Progress_StopTrackingTouch;
+            progress.ProgressChanged += Progress_JumpToPosition;
         }
 
         protected override void OnResume()
@@ -119,6 +125,29 @@ namespace CustomVideoPlayer
                 });
         }
 
+        private void VideoView_Error(object sender, Android.Media.MediaPlayer.ErrorEventArgs e)
+        {
+            Toast.MakeText(this, "Dieses Videoformat wird von Ihrem Gerät leider nicht unterstützt.", ToastLength.Long).Show();
+            Finish();
+        }
+
+        private void VideoView_Prepared(object sender, EventArgs e)
+        {
+            isLoaded = true;
+            loadingIndicator.Visibility = ViewStates.Invisible;
+            progress.Max = videoView.Duration;
+            UpdateDurationLabel(videoView.Duration);
+            videoView.Start();
+        }
+
+        private void VideoView_Completion(object sender, EventArgs e)
+        {
+            videoView.SeekTo(0);
+            playIcon.SetImageResource(Android.Resource.Drawable.IcMediaPlay);
+            updateProgressTimer.Stop();
+            ShowControlls(animated: true);
+        }
+
         private void RootView_Click(object sender, EventArgs e)
         {
             if (controlls.Visibility == ViewStates.Visible)
@@ -145,32 +174,57 @@ namespace CustomVideoPlayer
             }
         }
 
-        private void VideoView_Error(object sender, Android.Media.MediaPlayer.ErrorEventArgs e)
+        private void Progress_StartTrackingTouch (object sender, SeekBar.StartTrackingTouchEventArgs e)
         {
-            Toast.MakeText(this, "Dieses Videoformat wird von Ihrem Gerät leider nicht unterstützt.", ToastLength.Long).Show();
-            Finish();
+            draggingProgress = true;
         }
 
-        private void VideoView_Prepared(object sender, EventArgs e)
+        private void Progress_StopTrackingTouch (object sender, SeekBar.StopTrackingTouchEventArgs e)
         {
-            isLoaded = true;
-            loadingIndicator.Visibility = ViewStates.Invisible;
-            UpdateDuration(videoView.Duration);
-            videoView.Start();
+            draggingProgress = false;
         }
 
-        private void VideoView_Completion(object sender, EventArgs e)
+        private void Progress_JumpToPosition (object sender, SeekBar.ProgressChangedEventArgs e)
         {
-            videoView.SeekTo(0);
-            playIcon.SetImageResource(Android.Resource.Drawable.IcMediaPlay);
-            updateProgressTimer.Stop();
-            ShowControlls(animated: true);
+            if (!e.FromUser)
+                return;
+
+            int newPosition = e.Progress;
+            videoView.SeekTo(newPosition);
+            UpdatePositionLabel(newPosition);
         }
 
-        private void UpdateDuration(int milliseconds)
-        {
-            progress.Max = milliseconds;
 
+        private void UpdateProgress(object sender, ElapsedEventArgs e)
+        {
+            if (draggingProgress || !videoView.IsPlaying || controlls.Visibility != ViewStates.Visible)
+                return;
+
+            RunOnUiThread(() =>
+                {
+                    int milliseconds = videoView.CurrentPosition;
+
+                    progress.Progress = milliseconds;
+
+                    UpdatePositionLabel(milliseconds);
+                });
+        }
+
+        private void UpdatePositionLabel(int milliseconds)
+        {
+            var timespan = TimeSpan.FromMilliseconds(milliseconds);
+            if (timespan.TotalHours >= 1)
+            {
+                position.Text = timespan.ToString(@"hh\:mm\:ss");
+            }
+            else
+            {
+                position.Text = timespan.ToString(@"mm\:ss");
+            }
+        }
+
+        private void UpdateDurationLabel(int milliseconds)
+        {
             var timespan = TimeSpan.FromMilliseconds(milliseconds);
             if (timespan.TotalHours >= 1)
             {
@@ -180,26 +234,6 @@ namespace CustomVideoPlayer
             {
                 duration.Text = timespan.ToString(@"mm\:ss");
             }
-        }
-
-        private void UpdateProgress(object sender, ElapsedEventArgs e)
-        {
-            RunOnUiThread(() =>
-                {
-                    int milliseconds = videoView.CurrentPosition;
-
-                    progress.Progress = milliseconds;
-
-                    var timespan = TimeSpan.FromMilliseconds(milliseconds);
-                    if (timespan.TotalHours >= 1)
-                    {
-                        position.Text = timespan.ToString(@"hh\:mm\:ss");
-                    }
-                    else
-                    {
-                        position.Text = timespan.ToString(@"mm\:ss");
-                    }
-                });
         }
 
         private void HideSystemUI()

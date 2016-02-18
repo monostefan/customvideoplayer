@@ -39,7 +39,7 @@
                 android:gravity="center"
                 android:paddingRight="10dp"
                 android:paddingLeft="10dp" />
-            <ProgressBar
+            <SeekBar
                 android:id="@+id/progress"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
