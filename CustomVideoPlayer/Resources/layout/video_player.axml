@@ -9,26 +9,26 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_centerInParent="true" />
-    <ImageView
-        android:id="@+id/playIcon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:src="@drawable/videoplaylarge"
-        android:visibility="invisible" />
-    <ProgressBar
-        android:id="@+id/loadingIndicator"
-        style="?android:attr/progressBarStyleLarge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:indeterminate="true"
-        android:layout_centerInParent="true" />
-    <customvideoplayer.SystemFrameLayout
+    <FrameLayout
         android:id="@+id/systemWindow"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fitsSystemWindows="false"
+        android:fitsSystemWindows="true"
         android:animateLayoutChanges="true">
+        <ImageView
+            android:id="@+id/playIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:src="@drawable/videoplaylarge"
+            android:visibility="invisible" />
+        <ProgressBar
+            android:id="@+id/loadingIndicator"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            android:layout_gravity="center" />
         <LinearLayout
             android:id="@+id/progressView"
             android:layout_width="match_parent"
@@ -63,5 +63,5 @@
                 android:paddingRight="10dp"
                 android:paddingLeft="10dp" />
         </LinearLayout>
-    </customvideoplayer.SystemFrameLayout>
+    </FrameLayout>
 </RelativeLayout>

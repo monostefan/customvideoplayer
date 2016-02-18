@@ -10,7 +10,7 @@ namespace CustomVideoPlayer
 {
     [Activity(
         MainLauncher = true,
-        Theme = "@android:style/Theme.DeviceDefault.NoActionBar",
+        Theme = "@android:style/Theme.DeviceDefault.NoActionBar.TranslucentDecor",
         ConfigurationChanges=Android.Content.PM.ConfigChanges.Orientation | Android.Content.PM.ConfigChanges.ScreenSize
     )]
     public class AndroidVideoPlayerActivity : Activity
@@ -152,8 +152,6 @@ namespace CustomVideoPlayer
                 | (int) SystemUiFlags.HideNavigation
                 | (int) SystemUiFlags.Immersive
             );
-                
-            systemWindow?.SetFitsSystemWindows(false);
         }
 
         private void ShowSystemUI()
@@ -163,8 +161,6 @@ namespace CustomVideoPlayer
                 | (int) SystemUiFlags.LayoutFullscreen
                 | (int) SystemUiFlags.LayoutHideNavigation
             );
-
-            systemWindow?.SetFitsSystemWindows(true);
         }
 
         private void VideoView_Play (object sender, EventArgs e)

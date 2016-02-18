@@ -48,7 +48,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VideoPlayerActivity.cs" />
     <Compile Include="ImmersiveVideoView.cs" />
-    <Compile Include="SystemFrameLayout.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AboutResources.txt" />
