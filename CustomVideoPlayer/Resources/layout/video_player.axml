@@ -22,17 +22,8 @@
             android:layout_gravity="center"
             android:src="@android:drawable/ic_media_play"
             android:background="@drawable/round_button"
-            android:visibility="invisible"
             android:padding="10dp"
             tools:visibility="visible" />
-        <ProgressBar
-            android:id="@+id/loadingIndicator"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:indeterminate="true"
-            style="?android:attr/progressBarStyleLarge"
-            android:visibility="invisible" />
         <LinearLayout
             android:id="@+id/progressView"
             android:layout_width="match_parent"
@@ -66,4 +57,12 @@
                 android:paddingLeft="10dp" />
         </LinearLayout>
     </FrameLayout>
+    <ProgressBar
+        android:id="@+id/loadingIndicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:indeterminate="true"
+        style="?android:attr/progressBarStyleLarge"
+        android:visibility="invisible" />
 </FrameLayout>

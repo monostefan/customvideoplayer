@@ -12,7 +12,7 @@ namespace CustomVideoPlayer
     [Activity(
         MainLauncher = true,
         Theme = "@android:style/Theme.DeviceDefault.NoActionBar.TranslucentDecor",
-        ConfigurationChanges=Android.Content.PM.ConfigChanges.Orientation | Android.Content.PM.ConfigChanges.ScreenSize
+        ConfigurationChanges = Android.Content.PM.ConfigChanges.Orientation | Android.Content.PM.ConfigChanges.ScreenSize
     )]
     public class AndroidVideoPlayerActivity : Activity
     {
@@ -22,12 +22,12 @@ namespace CustomVideoPlayer
         private FrameLayout controlls;
         private ProgressBar loadingIndicator;
         private ImmersiveVideoView videoView;
-        private LinearLayout progressView;
         private TextView position;
         private ProgressBar progress;
         private TextView duration;
 
-        private Timer timer;
+        private Timer loadingTimeoutTimer;
+        private Timer updateProgressTimer;
         private bool isLoaded = false;
 
         protected override void OnCreate(Bundle savedInstanceState)
@@ -51,12 +51,12 @@ namespace CustomVideoPlayer
             videoView = FindViewById<ImmersiveVideoView>(Resource.Id.videoView);
 
             controlls = FindViewById<FrameLayout>(Resource.Id.controlls);
-            loadingIndicator = FindViewById<ProgressBar>(Resource.Id.loadingIndicator);
             playIcon = FindViewById<ImageView>(Resource.Id.playIcon);
-            progressView = FindViewById<LinearLayout>(Resource.Id.progressView);
             position = FindViewById<TextView>(Resource.Id.position);
             progress = FindViewById<ProgressBar>(Resource.Id.progress);
             duration = FindViewById<TextView>(Resource.Id.duration);
+
+            loadingIndicator = FindViewById<ProgressBar>(Resource.Id.loadingIndicator);
         }
 
         private void BindEvents()
@@ -82,10 +82,13 @@ namespace CustomVideoPlayer
         {
             base.OnDestroy();
 
-            if (timer != null)
+            if (loadingTimeoutTimer != null)
             {
-                timer.Stop();
-                timer.Close();
+                loadingTimeoutTimer.Stop();
+                loadingTimeoutTimer.Close();
+
+                updateProgressTimer.Stop();
+                updateProgressTimer.Close();
             }
         }
 
@@ -96,15 +99,18 @@ namespace CustomVideoPlayer
             var movieUri = Android.Net.Uri.Parse("http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4");
             videoView.SetVideoURI(movieUri);
 
-            timer = new Timer();
-            timer.Elapsed += CheckIfVideoIsLoaded;
-            timer.Interval = 10000;
-            timer.Start();
+            loadingTimeoutTimer = new Timer(10000);
+            loadingTimeoutTimer.AutoReset = true;
+            loadingTimeoutTimer.Elapsed += CheckIfVideoIsLoaded;
+            loadingTimeoutTimer.Start();
+
+            updateProgressTimer = new Timer(100);
+            updateProgressTimer.Elapsed += UpdateProgress;
         }
 
-        private void CheckIfVideoIsLoaded (object sender, ElapsedEventArgs e)
+        private void CheckIfVideoIsLoaded(object sender, ElapsedEventArgs e)
         {
-            RunOnUiThread(() => 
+            RunOnUiThread(() =>
                 {
                     if (!isLoaded)
                     {
@@ -113,7 +119,7 @@ namespace CustomVideoPlayer
                 });
         }
 
-        private void RootView_Click (object sender, EventArgs e)
+        private void RootView_Click(object sender, EventArgs e)
         {
             if (controlls.Visibility == ViewStates.Visible)
             {
@@ -127,7 +133,7 @@ namespace CustomVideoPlayer
             }
         }
 
-        private void PlayIcon_Click (object sender, EventArgs e)
+        private void PlayIcon_Click(object sender, EventArgs e)
         {
             if (videoView.IsPlaying)
             {
@@ -149,13 +155,22 @@ namespace CustomVideoPlayer
         {
             isLoaded = true;
             loadingIndicator.Visibility = ViewStates.Invisible;
-            playIcon.Visibility = ViewStates.Visible;
             UpdateDuration(videoView.Duration);
             videoView.Start();
         }
 
+        private void VideoView_Completion(object sender, EventArgs e)
+        {
+            videoView.SeekTo(0);
+            playIcon.SetImageResource(Android.Resource.Drawable.IcMediaPlay);
+            updateProgressTimer.Stop();
+            ShowControlls(animated: true);
+        }
+
         private void UpdateDuration(int milliseconds)
         {
+            progress.Max = milliseconds;
+
             var timespan = TimeSpan.FromMilliseconds(milliseconds);
             if (timespan.TotalHours >= 1)
             {
@@ -167,31 +182,44 @@ namespace CustomVideoPlayer
             }
         }
 
-        private void VideoView_Completion(object sender, EventArgs e)
+        private void UpdateProgress(object sender, ElapsedEventArgs e)
         {
-            videoView.SeekTo(0);
-            ShowControlls(animated: true);
-            playIcon.Visibility = ViewStates.Visible;
+            RunOnUiThread(() =>
+                {
+                    int milliseconds = videoView.CurrentPosition;
+
+                    progress.Progress = milliseconds;
+
+                    var timespan = TimeSpan.FromMilliseconds(milliseconds);
+                    if (timespan.TotalHours >= 1)
+                    {
+                        position.Text = timespan.ToString(@"hh\:mm\:ss");
+                    }
+                    else
+                    {
+                        position.Text = timespan.ToString(@"mm\:ss");
+                    }
+                });
         }
 
         private void HideSystemUI()
         {
-            Window.DecorView.SystemUiVisibility = (StatusBarVisibility) (
-                (int) SystemUiFlags.LayoutStable
-                | (int) SystemUiFlags.LayoutFullscreen
-                | (int) SystemUiFlags.LayoutHideNavigation
-                | (int) SystemUiFlags.Fullscreen
-                | (int) SystemUiFlags.HideNavigation
-                | (int) SystemUiFlags.Immersive
+            Window.DecorView.SystemUiVisibility = (StatusBarVisibility)(
+                (int)SystemUiFlags.LayoutStable
+                | (int)SystemUiFlags.LayoutFullscreen
+                | (int)SystemUiFlags.LayoutHideNavigation
+                | (int)SystemUiFlags.Fullscreen
+                | (int)SystemUiFlags.HideNavigation
+                | (int)SystemUiFlags.Immersive
             );
         }
 
         private void ShowSystemUI()
         {
-            Window.DecorView.SystemUiVisibility = (StatusBarVisibility) (
-                (int) SystemUiFlags.LayoutStable
-                | (int) SystemUiFlags.LayoutFullscreen
-                | (int) SystemUiFlags.LayoutHideNavigation
+            Window.DecorView.SystemUiVisibility = (StatusBarVisibility)(
+                (int)SystemUiFlags.LayoutStable
+                | (int)SystemUiFlags.LayoutFullscreen
+                | (int)SystemUiFlags.LayoutHideNavigation
             );
         }
 
@@ -224,19 +252,21 @@ namespace CustomVideoPlayer
             else
             {
                 controlls.Alpha = targetAlpha;
-                controlls.Visibility = ViewStates.Visible;
+                controlls.Visibility = isVisible ? ViewStates.Visible : ViewStates.Invisible;
             }
         }
 
-        private void VideoView_Play (object sender, EventArgs e)
+        private void VideoView_Play(object sender, EventArgs e)
         {
             playIcon.SetImageResource(Android.Resource.Drawable.IcMediaPause);
+            updateProgressTimer.Start();
             HideControlls(animated: true);
         }
 
-        private void VideoView_Stop (object sender, EventArgs e)
+        private void VideoView_Stop(object sender, EventArgs e)
         {
             playIcon.SetImageResource(Android.Resource.Drawable.IcMediaPlay);
+            updateProgressTimer.Start();
         }
     }
 }
