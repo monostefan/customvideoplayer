@@ -150,7 +150,21 @@ namespace CustomVideoPlayer
             isLoaded = true;
             loadingIndicator.Visibility = ViewStates.Invisible;
             playIcon.Visibility = ViewStates.Visible;
+            UpdateDuration(videoView.Duration);
             videoView.Start();
+        }
+
+        private void UpdateDuration(int milliseconds)
+        {
+            var timespan = TimeSpan.FromMilliseconds(milliseconds);
+            if (timespan.TotalHours >= 1)
+            {
+                duration.Text = timespan.ToString(@"hh\:mm\:ss");
+            }
+            else
+            {
+                duration.Text = timespan.ToString(@"mm\:ss");
+            }
         }
 
         private void VideoView_Completion(object sender, EventArgs e)
