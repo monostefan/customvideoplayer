@@ -17,11 +17,11 @@ namespace CustomVideoPlayer
     public class AndroidVideoPlayerActivity : Activity
     {
         private FrameLayout rootView;
-        private ImageView playIcon;
-
-        private FrameLayout controlls;
-        private ProgressBar loadingIndicator;
         private ImmersiveVideoView videoView;
+        private ImageView playButton;
+
+        private FrameLayout progressView;
+        private ProgressBar loadingIndicator;
         private TextView position;
         private SeekBar progress;
         private TextView duration;
@@ -44,16 +44,17 @@ namespace CustomVideoPlayer
 
             BindEvents();
 
-            HideControlls();
+            HideProgressView();
+            HidePlayButton();
         }
 
         private void FindViews()
         {
             rootView = FindViewById<FrameLayout>(Resource.Id.rootView);
             videoView = FindViewById<ImmersiveVideoView>(Resource.Id.videoView);
+            playButton = FindViewById<ImageView>(Resource.Id.playButton);
 
-            controlls = FindViewById<FrameLayout>(Resource.Id.controlls);
-            playIcon = FindViewById<ImageView>(Resource.Id.playIcon);
+            progressView = FindViewById<FrameLayout>(Resource.Id.progressView);
             position = FindViewById<TextView>(Resource.Id.position);
             progress = FindViewById<SeekBar>(Resource.Id.progress);
             duration = FindViewById<TextView>(Resource.Id.duration);
@@ -70,7 +71,7 @@ namespace CustomVideoPlayer
             videoView.Stop += VideoView_Stop;
 
             rootView.Click += RootView_Click;
-            playIcon.Click += PlayIcon_Click;
+            playButton.Click += PlayIcon_Click;
 
             progress.StartTrackingTouch += Progress_StartTrackingTouch;
             progress.StopTrackingTouch += Progress_StopTrackingTouch;
@@ -111,7 +112,7 @@ namespace CustomVideoPlayer
             loadingTimeoutTimer.Start();
 
             updateProgressTimer = new Timer(100);
-            updateProgressTimer.Elapsed += UpdateProgress;
+            updateProgressTimer.Elapsed += OnUpdateProgress;
         }
 
         private void CheckIfVideoIsLoaded(object sender, ElapsedEventArgs e)
@@ -135,30 +136,39 @@ namespace CustomVideoPlayer
         {
             isLoaded = true;
             loadingIndicator.Visibility = ViewStates.Invisible;
+
             progress.Max = videoView.Duration;
             UpdateDurationLabel(videoView.Duration);
+
             videoView.Start();
         }
 
         private void VideoView_Completion(object sender, EventArgs e)
         {
             videoView.SeekTo(0);
-            playIcon.SetImageResource(Android.Resource.Drawable.IcMediaPlay);
+            UpdatePositionLabel(0);
+            progress.Progress = 0;
+
+            playButton.SetImageResource(Android.Resource.Drawable.IcMediaPlay);
             updateProgressTimer.Stop();
-            ShowControlls(animated: true);
+            ShowProgressView(animated: true);
+            ShowPlayButton(animated: true);
         }
 
         private void RootView_Click(object sender, EventArgs e)
         {
-            if (controlls.Visibility == ViewStates.Visible)
+            if (progressView.Visibility == ViewStates.Visible)
             {
                 HideSystemUI();
-                HideControlls(animated: true);
+                HideProgressView(animated: true);
+                if (videoView.IsPlaying)
+                    HidePlayButton(animated: true);
             }
             else
             {
                 ShowSystemUI();
-                ShowControlls(animated: true);
+                ShowProgressView(animated: true);
+                ShowPlayButton(animated: true);
             }
         }
 
@@ -194,10 +204,9 @@ namespace CustomVideoPlayer
             UpdatePositionLabel(newPosition);
         }
 
-
-        private void UpdateProgress(object sender, ElapsedEventArgs e)
+        private void OnUpdateProgress(object sender, ElapsedEventArgs e)
         {
-            if (draggingProgress || !videoView.IsPlaying || controlls.Visibility != ViewStates.Visible)
+            if (draggingProgress || !videoView.IsPlaying || progressView.Visibility != ViewStates.Visible)
                 return;
 
             RunOnUiThread(() =>
@@ -257,50 +266,94 @@ namespace CustomVideoPlayer
             );
         }
 
-        private void ShowControlls(bool animated = false)
+        private void ShowPlayButton(bool animated = false)
         {
-            SetControllsVisibility(true, animated);
-            ShowSystemUI();
+            SetPlayButtonVisbility(true, animated);
         }
 
-        private void HideControlls(bool animated = false)
+        private void HidePlayButton(bool animated = false)
         {
-            SetControllsVisibility(false, animated);
-            HideSystemUI();
+            SetPlayButtonVisbility(false, animated);
         }
 
-        private void SetControllsVisibility(bool isVisible, bool animated = false)
+        private void SetPlayButtonVisbility(bool isVisible, bool animated)
         {
             float targetAlpha = isVisible ? 1.0f : 0.0f;
 
             if (animated)
             {
-                controlls.Visibility = ViewStates.Visible;
-                var hide = ValueAnimator.OfFloat(controlls.Alpha, targetAlpha);
-                hide.SetDuration(300);
-                hide.Update += (sender, e) => controlls.Alpha = (float)e.Animation.AnimatedValue;
-                hide.AnimationEnd += (sender, e) =>
-                    controlls.Visibility = isVisible ? ViewStates.Visible : ViewStates.Invisible;
-                hide.Start();
+                playButton.Visibility = ViewStates.Visible;
+                var anim = ValueAnimator.OfFloat(playButton.Alpha, targetAlpha);
+                anim.SetDuration(300);
+                anim.Update += (sender, e) => playButton.Alpha = (float)e.Animation.AnimatedValue;
+                anim.AnimationEnd += (sender, e) =>
+                {
+                    playButton.Alpha = targetAlpha;
+                    playButton.Visibility = isVisible ? ViewStates.Visible : ViewStates.Invisible;
+                };
+                anim.Start();
             }
             else
             {
-                controlls.Alpha = targetAlpha;
-                controlls.Visibility = isVisible ? ViewStates.Visible : ViewStates.Invisible;
+                playButton.Alpha = targetAlpha;
+                playButton.Visibility = isVisible ? ViewStates.Visible : ViewStates.Invisible;
+            }
+        }
+
+        private void ShowProgressView(bool animated = false)
+        {
+            SetProgressViewVisibility(true, animated);
+            ShowSystemUI();
+        }
+
+        private void HideProgressView(bool animated = false)
+        {
+            SetProgressViewVisibility(false, animated);
+            HideSystemUI();
+        }
+
+        private void SetProgressViewVisibility(bool isVisible, bool animated)
+        {
+            float targetAlpha = isVisible ? 1.0f : 0.0f;
+
+            if (animated)
+            {
+                progressView.Visibility = ViewStates.Visible;
+                var anim = ValueAnimator.OfFloat(progressView.Alpha, targetAlpha);
+                anim.SetDuration(300);
+                anim.Update += (sender, e) => progressView.Alpha = (float)e.Animation.AnimatedValue;
+                anim.AnimationEnd += (sender, e) =>
+                {
+                    progressView.Alpha = targetAlpha;
+                    progressView.Visibility = isVisible ? ViewStates.Visible : ViewStates.Invisible;
+                };
+                anim.Start();
+            }
+            else
+            {
+                progressView.Alpha = targetAlpha;
+                progressView.Visibility = isVisible ? ViewStates.Visible : ViewStates.Invisible;
             }
         }
 
         private void VideoView_Play(object sender, EventArgs e)
         {
-            playIcon.SetImageResource(Android.Resource.Drawable.IcMediaPause);
+            playButton.SetImageResource(Android.Resource.Drawable.IcMediaPause);
             updateProgressTimer.Start();
-            HideControlls(animated: true);
+
+            // TODO: Timeout
+            HideProgressView(animated: true);
+            HidePlayButton(animated: true);
         }
 
         private void VideoView_Stop(object sender, EventArgs e)
         {
-            playIcon.SetImageResource(Android.Resource.Drawable.IcMediaPlay);
+            playButton.SetImageResource(Android.Resource.Drawable.IcMediaPlay);
             updateProgressTimer.Start();
+
+
+            ShowProgressView(animated: true);
+            ShowPlayButton(animated: true);
         }
     }
 }

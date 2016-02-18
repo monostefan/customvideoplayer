@@ -10,22 +10,21 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="center" />
+    <ImageView
+        android:id="@+id/playButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:src="@android:drawable/ic_media_play"
+        android:background="@drawable/round_button"
+        android:padding="10dp"
+        tools:visibility="visible" />
     <FrameLayout
-        android:id="@+id/controlls"
+        android:id="@+id/progressView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fitsSystemWindows="true">
-        <ImageView
-            android:id="@+id/playIcon"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:src="@android:drawable/ic_media_play"
-            android:background="@drawable/round_button"
-            android:padding="10dp"
-            tools:visibility="visible" />
         <LinearLayout
-            android:id="@+id/progressView"
             android:layout_width="match_parent"
             android:layout_height="30dp"
             android:layout_gravity="bottom"
