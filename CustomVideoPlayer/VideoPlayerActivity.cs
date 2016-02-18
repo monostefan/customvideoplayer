@@ -18,7 +18,7 @@ namespace CustomVideoPlayer
         private FrameLayout rootView;
         private ImageView playIcon;
 
-        private FrameLayout systemWindow;
+        private FrameLayout controlls;
         private ProgressBar loadingIndicator;
         private ImmersiveVideoView videoView;
         private LinearLayout progressView;
@@ -35,9 +35,6 @@ namespace CustomVideoPlayer
 
             Window.AddFlags(WindowManagerFlags.KeepScreenOn);
 
-            // Start in fullscreen mode
-            HideSystemUI();
-
             SetContentView(Resource.Layout.video_player);
 
             FindViews();
@@ -50,7 +47,7 @@ namespace CustomVideoPlayer
             rootView = FindViewById<FrameLayout>(Resource.Id.rootView);
             videoView = FindViewById<ImmersiveVideoView>(Resource.Id.videoView);
 
-            systemWindow = FindViewById<FrameLayout>(Resource.Id.systemWindow);
+            controlls = FindViewById<FrameLayout>(Resource.Id.controlls);
             loadingIndicator = FindViewById<ProgressBar>(Resource.Id.loadingIndicator);
             playIcon = FindViewById<ImageView>(Resource.Id.playIcon);
             progressView = FindViewById<LinearLayout>(Resource.Id.progressView);
@@ -67,7 +64,8 @@ namespace CustomVideoPlayer
             videoView.Play += VideoView_Play;
             videoView.Stop += VideoView_Stop;
 
-            rootView.Click += VideoView_Click;
+            rootView.Click += RootView_Click;
+            playIcon.Click += PlayIcon_Click;
         }
 
         protected override void OnResume()
@@ -112,7 +110,21 @@ namespace CustomVideoPlayer
                 });
         }
 
-        private void VideoView_Click (object sender, EventArgs e)
+        private void RootView_Click (object sender, EventArgs e)
+        {
+            if (controlls.Visibility == ViewStates.Visible)
+            {
+                HideSystemUI();
+                HideControlls();
+            }
+            else
+            {
+                ShowSystemUI();
+                ShowControlls();
+            }
+        }
+
+        private void PlayIcon_Click (object sender, EventArgs e)
         {
             if (videoView.IsPlaying)
             {
@@ -134,13 +146,14 @@ namespace CustomVideoPlayer
         {
             isLoaded = true;
             loadingIndicator.Visibility = ViewStates.Invisible;
+            playIcon.Visibility = ViewStates.Visible;
             videoView.Start();
         }
 
         private void VideoView_Completion(object sender, EventArgs e)
         {
             videoView.SeekTo(0);
-            ShowSystemUI();
+            ShowControlls();
             playIcon.Visibility = ViewStates.Visible;
         }
 
@@ -165,16 +178,27 @@ namespace CustomVideoPlayer
             );
         }
 
+        private void ShowControlls()
+        {
+            controlls.Visibility = ViewStates.Visible;
+            ShowSystemUI();
+        }
+
+        private void HideControlls()
+        {
+            controlls.Visibility = ViewStates.Invisible;
+            HideSystemUI();
+        }
+
         private void VideoView_Play (object sender, EventArgs e)
         {
-            HideSystemUI();
-            playIcon.Visibility = ViewStates.Invisible;
+            playIcon.SetImageResource(Android.Resource.Drawable.IcMediaPause);
+            HideControlls();
         }
 
         private void VideoView_Stop (object sender, EventArgs e)
         {
-            ShowSystemUI();
-            playIcon.Visibility = ViewStates.Visible;
+            playIcon.SetImageResource(Android.Resource.Drawable.IcMediaPlay);
         }
     }
 }
